@@ -1,0 +1,360 @@
+---
+title: "NEWsupervised"
+output: html_document
+date: "2024-07-31"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+```{r}
+# REQUIRED PACKAGES
+
+library(robCompositions)
+library(tidyverse)
+library(tidyquant)
+library(quantmod)
+library(readr)
+library(here)
+library(dplyr)
+library(easyCODA)
+library(factoextra)
+library(cluster)
+library(compositions)
+library(ggplot2)
+```
+
+
+```{r}
+# DATASET
+
+bootstrap_2024_data <- read_csv(here("S&P500 2024 (work).csv"))
+data_2024 <- as.data.frame(bootstrap_2024_data)
+
+d_f <- read_csv(here("S&P500 2024 (work).csv"))
+reduced_2024 <- as.data.frame(d_f)
+
+reduced_2024 <- data.frame(
+  Cyclical = d_f[,1] + d_f[,3] + d_f[,4] + d_f[6] + d_f[,10],
+  Defensive = d_f[,2] + d_f[,7] + d_f[,9],
+  Sensitive = d_f[,5] + d_f[,8] + d_f[,11],
+  PriceChange = d_f[,12],
+  Volatility = d_f[,13]
+)
+
+colnames(reduced_2024) <- c("Cyclical", "Defensive", "Sensitive", "PriceChange", "Volatility")
+```
+
+```{r}
+data_2024 <- na.omit(data_2024)
+```
+
+
+
+```{r}
+# MODEL FOR 2024 Price Change
+
+X <- data_2024[,1:11]
+X[X == 0] <- 0.1
+Y <- data_2024[,12]
+
+model_1 <- lmCoDaX(Y, X, method="classical")$ilr
+model_1
+```
+
+```{r}
+# USING lm FUNCTION
+
+X <- data_2024[,1:11]
+X[X == 0] <- 0.1
+Y <- data_2024[,12]
+
+model1 <- lm(Y ~ ilr(X))
+
+
+a = coef(model1)[1]
+print(a)
+
+b = ilrInv(coef(model1)[-1],orig=X)
+print(b)
+
+varb=ilrvar2clr(vcov(model1)[-1,-1])
+print(varb)
+```
+
+```{r}
+set_par <- par(mar=c(3,3,0,0))
+pred_values = predict(model1) 
+
+plot(pred_values, Y)
+
+abline(0,1)
+par(set_par)
+```
+
+```{r}
+cor(Y,pred_values,method="pearson")
+```
+
+```{r}
+# Q-Q shows no significant deviation from normality - expected since data randomly generated
+# Residuals are homoscedastic
+par(mfrow=c(2,2))
+plot(model1,add.smooth=FALSE,which=1:2)
+```
+
+```{r}
+studentresid = rstudent(model1)
+qqnorm(StudentizedResiduals)
+qqline(StudentizedResiduals)
+shapiro.test(StudentizedResiduals)
+boxplot(StudentizedResiduals)
+```
+
+
+
+
+```{r}
+# MODEL FOR 2024 Volatility
+
+X <- data_2024[,1:11]
+X[X == 0] <- 0.1
+Y <- data_2024[,13]
+
+model_2 <- lmCoDaX(Y, X, method="classical")$ilr
+model_2
+```
+
+
+```{r}
+# USING lm FUNCTION
+
+X <- data_2024[,1:11]
+X[X == 0] <- 0.1
+Y <- log(data_2024[,13])
+
+model2 <- lm(Y ~ ilr(X))
+
+a = coef(model2)[1]
+print(a)
+
+b = ilrInv(coef(model2)[-1],orig=X)
+print(b)
+
+varb=ilrvar2clr(vcov(model2)[-1,-1])
+print(varb)
+```
+
+```{r}
+set_par <- par(mar=c(3,3,0,0))
+pred_values = predict(model2) 
+
+plot(exp(pred_values), exp(Y))
+
+abline(0,1)
+par(set_par)
+```
+
+```{r}
+cor(Y,Predicted,method="pearson")
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(model2,add.smooth=FALSE,which=1:2)
+```
+
+
+```{r}
+# MODEL FOR 2024 Price Change with Robust method
+
+X <- data_2024[,1:11]
+X[X == 0] <- 0.1
+Y <- data_2024[,12]
+
+model3 <- lmCoDaX(Y, X, method="robust")$ilr
+model3
+```
+
+
+```{r}
+# MODEL FOR 2024 Volatility with Robust method
+
+X <- data_2024[,1:11]
+X[X == 0] <- 0.1
+Y <- data_2024[,13]
+
+model4 <- lmCoDaX(Y, X, method="robust")$ilr
+model4
+```
+
+
+
+```{r}
+# MODEL FOR 2024 Price Change By Super Sector
+
+X <- as.data.frame(reduced_2024[,1:3])
+X[X == 0] <- 0.1
+Y <- reduced_2024[,4]
+#glimpse(Y)
+model5 <- lmCoDaX(Y, X, method="classical")$ilr
+model5
+```
+
+
+
+```{r}
+# CREATING DATASETS FOR CALENDAR YEARS 2019 to 2023
+
+bootstrap_2019_data <- read_csv(here("calendar2019 (work).csv"))
+calendar_2019 <- as.data.frame(bootstrap_2019_data)
+
+bootstrap_2020_data <- read_csv(here("calendar2020 (work).csv"))
+calendar_2020 <- as.data.frame(bootstrap_2020_data)
+
+bootstrap_2021_data <- read_csv(here("calendar2021 (work).csv"))
+calendar_2021 <- as.data.frame(bootstrap_2021_data)
+
+bootstrap_2022_data <- read_csv(here("calendar2022 (work).csv"))
+calendar_2022 <- as.data.frame(bootstrap_2022_data)
+
+bootstrap_2023_data <- read_csv(here("calendar2023 (work).csv"))
+calendar_2023 <- as.data.frame(bootstrap_2023_data)
+
+```
+
+
+```{r}
+# MODEL FOR 2019 Price Change
+
+X <- calendar_2019[,1:11]
+X[X == 0] <- 0.1
+Y <- calendar_2019[,12]
+
+model2019pc <- lmCoDaX(Y, X, method="classical")$ilr
+model2019pc
+```
+
+```{r}
+# MODEL FOR 2019 Volatility
+
+X <- calendar_2019[,1:11]
+X[X == 0] <- 0.1
+Y <- log(calendar_2019[,13])
+
+model2019v <- lmCoDaX(Y, X, method="classical")$ilr
+model2019v
+```
+
+```{r}
+# MODEL FOR 2020 Price Change
+
+X <- calendar_2020[,1:11]
+X[X == 0] <- 0.1
+Y <- calendar_2020[,12]
+
+model2020pc <- lmCoDaX(Y, X, method="classical")$ilr
+model2020pc
+```
+
+```{r}
+# MODEL FOR 2020 Volatility
+
+X <- calendar_2020[,1:11]
+X[X == 0] <- 0.1
+Y <- log(calendar_2020[,13])
+
+model2020v <- lmCoDaX(Y, X, method="classical")$ilr
+model2020v
+```
+
+```{r}
+# MODEL FOR 2021 Price Change
+
+X <- calendar_2021[,1:11]
+X[X == 0] <- 0.1
+Y <- calendar_2021[,12]
+
+model2021pc <- lmCoDaX(Y, X, method="classical")$ilr
+model2021pc
+```
+
+```{r}
+# MODEL FOR 2021 Volatility
+
+X <- calendar_2021[,1:11]
+X[X == 0] <- 0.1
+Y <- log(calendar_2021[,13])
+
+model2021v <- lmCoDaX(Y, X, method="classical")$ilr
+model2021v
+```
+
+```{r}
+# MODEL FOR 2022 Price Change
+
+X <- calendar_2022[,1:11]
+X[X == 0] <- 0.1
+Y <- calendar_2022[,12]
+
+model2022pc <- lmCoDaX(Y, X, method="classical")$ilr
+model2022pc
+```
+
+```{r}
+# MODEL FOR 2022 Volatility
+
+X <- calendar_2022[,1:11]
+X[X == 0] <- 0.1
+Y <- log(calendar_2022[,13])
+
+model2022v <- lmCoDaX(Y, X, method="classical")$ilr
+model2022v
+```
+
+```{r}
+# MODEL FOR 2023 Price Change
+
+X <- calendar_2023[,1:11]
+X[X == 0] <- 0.1
+Y <- calendar_2023[,12]
+
+model2023pc <- lmCoDaX(Y, X, method="classical")$ilr
+model2023pc
+```
+
+```{r}
+# MODEL FOR 2023 Volatility
+
+X <- calendar_2023[,1:11]
+X[X == 0] <- 0.1
+Y <- log(calendar_2023[,13])
+
+model2023v <- lmCoDaX(Y, X, method="classical")$ilr
+model2023v
+```
+
+

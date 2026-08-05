@@ -1,0 +1,605 @@
+---
+title: "NEWunsupervised"
+output: html_document
+date: "2024-07-29"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+# REQUIRED PACKAGES
+
+library(robCompositions)
+library(tidyverse)
+library(tidyquant)
+library(quantmod)
+library(readr)
+library(here)
+library(dplyr)
+library(easyCODA)
+library(factoextra)
+library(cluster)
+library(compositions)
+library(ggplot2)
+```
+
+```{r}
+# CREATE FULL SECTOR DATASET AND REDUCED SUPERSECTOR DATASET
+
+d_f <- read_csv(here("Superinvestor Reduced.csv"))
+superinvestor_dataset <- read_csv(here("Superinvestor Data (work).csv"))
+```
+
+```{r}
+# CREATE REDUCED SUPERSECTOR DATASET
+
+superinvestor_reduced <- data.frame(
+  Superinvestor = d_f[,1],
+  Cyclical = d_f[,4] + d_f[,5] + d_f[,7] + d_f[11] + d_f[,12],
+  Defensive = d_f[,3] + d_f[,8] + d_f[,10],
+  Sensitive = d_f[,2] + d_f[,6] + d_f[,9]
+)
+
+colnames(superinvestor_reduced) <- c("Superinvestor", "Cyclical", "Defensive", "Sensitive")
+```
+
+```{r}
+glimpse(superinvestor_reduced)
+```
+
+```{r}
+# BASIC VISUALISATION: TERNARY DIAGRAM OF REDUCED DATASET WITH PC1 LINE SHOWN TO ILLUSTRATE AITCHISON GEOMETRY
+
+X <- superinvestor_reduced[,2:4]
+
+ternaryDiag(X, line = "pca", col = "red", cex = 1)
+```
+
+```{r}
+# CORRELATION ANALYSIS OF FULL DATASET
+
+X <- as.data.frame(superinvestor_dataset[,2:13])
+X[X==0] <- 0.001
+
+D <- ncol(X)
+par(mfrow = c(D, D), mar = c(0.1,0.1,0.1,0.1))
+pearson_corr <- matrix(NA, ncol = D, nrow = D)
+spearman_corr <- matrix(NA, ncol = D, nrow = D)
+
+diag(pearson_corr) <- rep(1, D)
+diag(spearman_corr) <- rep(1, D)
+
+for (i in 1:D){
+  for (j in 1:D){ 
+    if (i==j){
+      plot(0, 0, type = "n", xaxt = "n", yaxt = "n")
+      text(0, 0, names(X[i])) 
+    }
+    else{
+      Z <- pivotCoord(X[, c(i, j, (1:D)[-c(i, j)])], method = "symm") 
+      plot(Z[, 1:2],
+        xaxt = "n", yaxt = "n", xlab = "", ylab = "", type = "n") 
+      text(Z[, 1], Z[, 2], cex = 0.7)
+      pearson_corr[i,j] <- cor(Z[, 1:2])[1, 2]
+      spearman_corr[i,j] <- cor(Z[, 1:2], method = "spearman")[1, 2]
+    } 
+  }
+}
+```
+
+```{r}
+library("gplots")
+rgbcol <- colorRampPalette(c("blue4","turquoise","white","orange","red4"), space = "rgb")
+
+heatmap.2(as.matrix(pearson_corr), Rowv = FALSE, symm = TRUE, col = rgbcol(256),
+          key = TRUE, trace = "none", main = "Pearson correlation",
+          margins = c(4, 4), cexRow = 1.2, cexCol = 1.2) 
+
+heatmap.2(as.matrix(spearman_corr), Rowv = FALSE, symm = TRUE, col = rgbcol(256),
+          key = TRUE, trace = "none", main = "Spearman correlation",
+          margins = c(4, 4), cexRow = 1.2, cexCol = 1.2)
+```
+
+```{r}
+# CREATION OF ILR TRANSFORMED DATA AND PCA DATA
+
+set.seed(234)
+X <- as.data.frame(d_f[,2:13])
+X[X==0] <- 0.001
+glimpse(X)
+p_comp_classic <- pcaCoDa(X, method = "classical")
+p_comp_robust <- pcaCoDa(X, method = "robust")
+#summary(p_comp_classic)
+summary(p_comp_robust)
+```
+
+```{r}
+# PCA VISUALISATION SHOWING COMPONENT VECTORS
+
+par(mfrow=c(1,2), mar = c(4,4,2,2))
+biplot(p_comp_classic, xlabs = rep(".",94), cex = 0.7)
+biplot(p_comp_robust, xlabs = rep(".",94), cex = 0.7)
+
+```
+
+```{r}
+# SUMMARY OF PCA RESULTS: SCREE PLOT
+
+plot(p_comp_classic$eigenvalues, type = "b", xlab = "Principal Component", ylab = "Eigenvalue", main = "Scree Plot (Classical)")
+
+plot(p_comp_robust$eigenvalues, type = "b", xlab = "Principal Component", ylab = "Eigenvalue", main = "Scree Plot (Robust)")
+```
+
+```{r}
+# LOADINGS OF PCA DATA
+
+loadings_classic <- p_comp_classic$loadings
+loadings_robust <- p_comp_robust$loadings
+
+loadings_classic
+loadings_robust
+
+```
+
+```{r}
+# DENDROGRAM USING HIERARCHICAL CLUSTERING: DOES NOT SHOW CLEAR CLUSTERS
+
+X <- as.data.frame(superinvestor_dataset[,2:13])
+X[X==0] <- 0.001
+Z <- pivotCoord(X)
+set.seed(234)
+
+h_clust_results <- hclust(dist(Z))
+plot(h_clust_results)
+
+hier_clusters <- cutree(h_clust_results, k = 3)
+hier_clusters
+```
+
+```{r}
+# VISUALISATION USING REDUCED DATASET OF CLUSTERS MADE ON FULL DATASET USING HIERARCHICAL CLUSTERING
+# SHOWS NO CLEAR GROUPING BASED ON SUPERSECTORS BUT SINCE TERNARY DIAGRAM USES AITCHISON GEOMETRY
+# DISTANCES NEAR EDGES ARE WARPED AND ALSO CLUSTERING BASED ON ALL SECTORS SO DOESN'T NECESSARILY
+# MEAN CLUSTERING IS NOT MEANINGFUL JUST BECAUSE IT DOESN'T LOOK OBVIOUS ON THIS GRAPH
+
+cluster_colours <- c("red", "blue", "green", "yellow", "orange")
+point_colours <- cluster_colours[hier_clusters]
+X_reduced <- as.data.frame(superinvestor_reduced[,2:4])
+ternaryDiag(X_reduced, col = point_colours, cex = 1)
+
+```
+```{r}
+pca_data <- prcomp(Z, scale = TRUE)
+
+
+```
+
+```{r}
+par(mfrow=c(1,2), mar = c(4,4,2,2))
+pca_dataframe <- as.data.frame(p_comp_classic)
+ggplot(p_comp_classic, cex = 0.7)
+```
+
+```{r}
+# K MEANS CLUSTERING OF PCA DATA HOWEVER THERE IS NOT CLEAR MOTIVATION FOR
+# PERFORMING K MEANS ON PCA DATA INSTEAD OF FULL DATA
+
+set.seed(234)
+nozero_superinvestor_data <- superinvestor_dataset[,2:13]
+
+nozero_superinvestor_data[nozero_superinvestor_data == 0] <- 0.001
+
+ilr_cleaned_data <- pivotCoord(cleaned_superinvestor_data)
+
+ilr_cleaned_dataframe <- as.data.frame(ilr_cleaned_data)
+
+
+pca_cleaned_data <- prcomp(ilr_cleaned_dataframe, scale = TRUE)
+
+pca_kmeans_result <- kmeans(pca_cleaned_data$x, centers = 3)
+
+pca_kmeans_clusters <- pca_kmeans_result$cluster
+
+
+fviz_pca_ind(pca_cleaned_data, geom.ind = "point", pointshape = 20, 
+             pointsize = 2, habillage = pca_kmeans_clusters, repel = TRUE)
+```
+
+```{r}
+X <- as.data.frame(superinvestor_dataset[,2:13])
+X[X==0] <- 0.001
+Z <- pivotCoord(X)
+
+pca_visual <- prcomp(Z)
+pca_visual_dataframe <- data.frame(pca_visual$x, Cluster = as.factor(kmeans_clusters))
+
+ggplot(pca_visual_dataframe, aes(x = PC1, y = PC2, color = Cluster)) +
+  geom_point(size = 3) +
+  labs(title = "PCA of Compositional Data with k-means Clusters")
+```
+
+```{r}
+# TERNARY DIAGRAM SHOWING K MEANS CLUSTERS BASED ON PCA DATA
+
+X_reduced <- as.data.frame(superinvestor_reduced[,2:4])
+cluster_colours <- c("red", "blue", "green", "yellow", "orange")
+pca_kmeans_colours <- cluster_colours[pca_kmeans_clusters]
+ternaryDiag(X_reduced, col = pca_kmeans_colours, cex = 1)
+```
+
+```{r}
+# PC VISUALISATION OF HIERARCHICAL CLUSTERING FROM EARLIER: DOESN'T APPEAR TO SHOW DISTINCT
+# CLUSTERS ALSO CLUSTER SIZES ARE NOT BALANCED
+
+set.seed(234)
+nozero_superinvestor_data <- superinvestor_dataset[,2:13]
+
+nozero_superinvestor_data[nozero_superinvestor_data == 0] <- 0.001
+
+ilr_cleaned_data <- pivotCoord(cleaned_superinvestor_data)
+
+ilr_cleaned_dataframe <- as.data.frame(ilr_cleaned_data)
+
+
+fviz_pca_ind(pca_cleaned_data, geom.ind = "point", pointshape = 20, 
+             pointsize = 2, habillage = hier_clusters, repel = TRUE)
+```
+
+```{r}
+X <- as.data.frame(superinvestor_dataset[,2:13])
+X[X==0] <- 0.001
+Z <- pivotCoord(X)
+
+pca_visual <- prcomp(Z)
+pca_visual_dataframe <- data.frame(pca_visual$x, Cluster = as.factor(hier_clusters))
+
+ggplot(pca_visual_dataframe, aes(x = PC1, y = PC2, color = Cluster)) +
+  geom_point(size = 3) +
+  labs(title = "PCA of Compositional Data with Hierarchical Clusters")
+```
+
+```{r}
+# CODE BELOW USED INSTEAD
+
+X <- as.data.frame(superinvestor_dataset[,2:13])
+X[X==0] <- 0.001
+Z <- pivotCoord(X)
+k_value <- 1
+
+for (i in 1:9) {
+  clust_result <- clustCoDa(X, k = i+1)
+  
+  bic_values[k_value] <- clust_result$BIC
+}
+
+optimal_clusters <- which.min(bic_values)
+```
+
+```{r}
+# PC VISUALISATION OF K MEANS CLUSTERS ON FULL DATA NOT PCA DATA: DOESN'T SHOW DISTINCT CLUSTERS
+
+set.seed(234)
+nozero_superinvestor_data <- superinvestor_dataset[,2:13]
+
+nozero_superinvestor_data[nozero_superinvestor_data == 0] <- 0.001
+
+ilr_cleaned_data <- pivotCoord(cleaned_superinvestor_data)
+
+ilr_cleaned_dataframe <- as.data.frame(ilr_cleaned_data)
+
+kmeans_result <- kmeans(ilr_cleaned_dataframe, centers = 3)
+
+kmeans_clusters <- kmeans_result$cluster
+
+
+fviz_pca_ind(pca_cleaned_data, geom.ind = "point", pointshape = 20, 
+             pointsize = 2, habillage = kmeans_clusters, repel = TRUE)
+
+```
+
+```{r}
+ggplot(pca_vis_dataframe, aes(x = PC1, y = PC2, color = Cluster)) +
+  geom_point(size = 3) +
+  labs(title = "PCA of Compositional Data with Ward's Clusters")
+```
+
+```{r}
+X_reduced <- as.data.frame(superinvestor_reduced[,2:4])
+cluster_colours <- c("red", "blue", "green", "yellow", "orange")
+kmeans_colours <- cluster_colours[kmeans_clusters]
+ternaryDiag(X_reduced, col = kmeans_colours, cex = 1)
+```
+
+```{r}
+calculate_bic <- function(kmeans_input, dataset) {
+  n <- nrow(dataset)
+  k <- length(unique(kmeans_input$cluster))
+  d <- ncol(dataset)
+  total_withinss <- sum(kmeans_input$withinss)
+  bic <- n * log(total_withinss / n) + k * log(n) * d
+  return(bic)
+}
+```
+
+```{r}
+set.seed(123)
+check_bic <- kmeans(ilr_cleaned_dataframe, centers = 1)
+calculate_bic(check_bic, ilr_cleaned_dataframe)
+```
+
+```{r}
+set.seed(123)
+check_bic <- kmeans(ilr_cleaned_dataframe, centers = 2)
+calculate_bic(check_bic, ilr_cleaned_dataframe)
+```
+
+```{r}
+set.seed(123)
+check_bic <- kmeans(ilr_cleaned_dataframe, centers = 3)
+calculate_bic(check_bic, ilr_cleaned_dataframe)
+```
+
+```{r}
+set.seed(123)
+check_bic <- kmeans(ilr_cleaned_dataframe, centers = 4)
+calculate_bic(check_bic, ilr_cleaned_dataframe)
+```
+
+```{r}
+set.seed(123)
+check_bic <- kmeans(ilr_cleaned_dataframe, centers = 5)
+calculate_bic(check_bic, ilr_cleaned_dataframe)
+```
+
+```{r}
+set.seed(123)
+check_bic <- kmeans(pca_cleaned_data$x, centers = 1)
+calculate_bic(check_bic, pca_cleaned_data$x)
+```
+
+```{r}
+set.seed(123)
+check_bic <- kmeans(pca_cleaned_data$x, centers = 2)
+calculate_bic(check_bic, pca_cleaned_data$x)
+```
+
+```{r}
+set.seed(123)
+check_bic <- kmeans(pca_cleaned_data$x, centers = 3)
+calculate_bic(check_bic, pca_cleaned_data$x)
+```
+
+```{r}
+set.seed(123)
+check_bic <- kmeans(pca_cleaned_data$x, centers = 4)
+calculate_bic(check_bic, pca_cleaned_data$x)
+```
+
+```{r}
+set.seed(123)
+check_bic <- kmeans(pca_cleaned_data$x, centers = 5)
+calculate_bic(check_bic, pca_cleaned_data$x)
+```
+
+```{r}
+# DENDROGRAM USING WARD METHOD
+# WARD CLUSTERING SHOWS SIGNIFICANT CLUSTERS
+
+set.seed(123)
+X <- as.data.frame(superinvestor_dataset[,2:13])
+X[X==0] <- 0.001
+Z <- pivotCoord(X)
+
+ward_result <- WARD(Z)
+
+plot(as.dendrogram(ward_result), main = "Dendrogram Using Ward Method") 
+```
+
+```{r}
+# FUNCTION TO CALCULATE OPTIMAL K: ELBOW METHOD
+
+withinss_hier_clust <- function(hc, k) {
+  clusters <- cutree(hc, k)
+  ss <- sum(sapply(unique(clusters), function(c) {
+    clustered_dataset <- Z[clusters == c, ]
+    sum(dist(clustered_dataset)^2) / (2 * nrow(clustered_dataset))
+  }))
+  return(ss)
+}
+
+
+k_values <- 1:10
+withinss_values <- sapply(k_values, function(k) withinss_hier_clust(ward_result, k))
+
+
+plot(k_values, withinss_values, type = "b", pch = 19, frame = FALSE,
+     xlab = "Number of clusters K",
+     ylab = "Total within-clusters sum of squares")
+```
+
+```{r}
+# LONG PROCESS TO VALIDATE WARD CLUSTERING CHOICE OF K: REPLACE K WITH EACH POSSIBLE VALUE
+
+k_values <- 2:12
+hartigan_indices <- numeric(length(k_values))
+ch_indices <- numeric(length(k_values))
+
+
+
+for (i in seq_along(k_values)) {
+  k <- k_values[i]
+  X <- as.data.frame(superinvestor_dataset[,2:13])
+  X[X==0] <- 0.001
+  Z <- pivotCoord(X)
+
+  ward_result <- WARD(Z)
+  ward_clusters <- cutree(ward_result, k = k)
+
+  all_clusters <- split(as.data.frame(Z), ward_clusters)
+  
+  average_list <- lapply(all_clusters, function(cluster_matrix) colMeans(as.matrix(cluster_matrix)))
+  
+  average_matrix <- do.call(rbind, average_list)
+  
+  v_bar <- colMeans(average_matrix)
+  
+  Bnc <- sum(apply(average_matrix, 1, function(row) sum((row - v_bar)^2)))
+  
+  Wnc <- sum(sapply(all_clusters, function(cluster_matrix){
+    cluster_center <- colMeans(as.matrix(cluster_matrix))
+    sum(apply(cluster_matrix, 1, function(row) sum((row - cluster_center)^2)))
+  }))
+  
+  Hnc <- log(Bnc / Wnc)
+  CHnc <- (Bnc/(k-1)) / (Wnc/(n-k))
+  
+  hartigan_indices[i] <- Hnc
+  ch_indices[i] <- CHnc
+
+}
+
+plot(k_values, hartigan_indices, type = 'b', col = 'blue', xlab = 'Number of Clusters (k)', ylab = 'Index Value', main = 'Hartigan Indices')
+
+plot(k_values, ch_indices, type = 'b', col = 'red', xlab = 'Number of Clusters (k)', ylab = 'Index Value', main = 'Calinski-Harabasz Indices')
+
+```
+
+```{r}
+# MAKING CSV FOR DIFFERENT K VALUES FOR CHARACTERISING THE CLUSTERS IN EXCEL
+
+ward_2_clusters <- cutree(ward_result, k = 2)
+ward2_clusters_df <- data.frame(Superinvestor = superinvestor_dataset, Cluster = ward_2_clusters)
+write.csv(ward2_clusters_df, "ward_2_clusters.csv")
+
+ward_9_clusters <- cutree(ward_result, k = 9)
+ward9_clusters_df <- data.frame(Superinvestor = superinvestor_dataset, Cluster = ward_9_clusters)
+write.csv(ward9_clusters_df, "ward_9_clusters.csv")
+```
+
+```{r}
+# PC VISUALISATION OF WARD CLUSTERING
+
+ward_clusters <- cutree(ward_result, k = 2)
+
+pca_vis <- prcomp(Z)
+pca_vis_dataframe <- data.frame(pca_vis$x, Cluster = as.factor(ward_clusters))
+
+ggplot(pca_vis_dataframe, aes(x = PC1, y = PC2, color = Cluster)) +
+  geom_point(size = 3) +
+  labs(title = "PCA of Compositional Data with Ward's Clusters")
+```
+
+```{r}
+# TERNARY DIAGRAM SHOWING WARD CLUSTERS
+
+cluster_colours <- c("red", "blue", "green", "yellow", "orange")
+point_colours <- cluster_colours[ward_clusters]
+X_reduced <- as.data.frame(superinvestor_reduced[,2:4])
+ternaryDiag(X_reduced, col = point_colours, cex = 1)
+```
+
+```{r}
+fviz_pca_ind(pca_cleaned_data, geom.ind = "point", pointshape = 20, 
+             pointsize = 2, habillage = ward_clusters, repel = TRUE)
+```
+
+```{r}
+calculate_ward_bic <- function(data, clusters, k) {
+  n <- nrow(data)
+  d <- ncol(data)
+  withinss <- 0
+  
+  for (i in 1:k) {
+    clustered_dataset <- data[clusters == i, ]
+    if (nrow(clustered_dataset) > 0) {
+      cluster_center <- colMeans(clustered_dataset)
+      withinss <- withinss + sum(rowSums((clustered_dataset - cluster_center) ^ 2))
+    }
+  }
+  
+  bic <- n * log(withinss / n) + k * log(n) * d
+  return(bic)
+}
+```
+
+```{r}
+set.seed(123)
+X <- as.data.frame(superinvestor_dataset[,2:13])
+X[X==0] <- 0.001
+Z <- pivotCoord(X)
+
+ward_result <- WARD(Z)
+ward_clusters <- cutree(ward_result, k = 5)
+
+calculate_ward_bic(Z, ward_clusters, 5)
+```
+
+```{r}
+set.seed(123)
+X <- as.data.frame(superinvestor_dataset[,2:13])
+X[X==0] <- 0.001
+Z <- pivotCoord(X)
+
+ward_result <- WARD(Z)
+ward_clusters <- cutree(ward_result, k = 4)
+
+calculate_ward_bic(Z, ward_clusters, 4)
+```
+
+```{r}
+set.seed(123)
+X <- as.data.frame(superinvestor_dataset[,2:13])
+X[X==0] <- 0.001
+Z <- pivotCoord(X)
+
+ward_result <- WARD(Z)
+ward_clusters <- cutree(ward_result, k = 3)
+
+calculate_ward_bic(Z, ward_clusters, 3)
+```
+
+```{r}
+set.seed(123)
+X <- as.data.frame(superinvestor_dataset[,2:13])
+X[X==0] <- 0.001
+Z <- pivotCoord(X)
+
+ward_result <- WARD(Z)
+ward_clusters <- cutree(ward_result, k = 2)
+
+calculate_ward_bic(Z, ward_clusters, 2)
+```
+
+```{r}
+set.seed(123)
+X <- as.data.frame(superinvestor_dataset[,2:13])
+X[X==0] <- 0.001
+Z <- pivotCoord(X)
+
+ward_result <- WARD(Z)
+ward_clusters <- cutree(ward_result, k = 1)
+
+calculate_ward_bic(Z, ward_clusters, 1)
+```
