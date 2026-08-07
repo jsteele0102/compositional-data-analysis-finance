@@ -1,2 +1,160 @@
-# compositional-data-analysis-finance
-MSc Dissertation on portfolio analysis and optimisation using Compositional Data Analysis (CoDA), with implementations in R and Python.
+# Compositional Portfolio Analysis
+
+## Overview
+
+This repository contains the code, data, and analysis associated with my MSc Data Science dissertation project investigating the application of mathematical and statistical methods to financial portfolio data, with a particular focus on **Compositional Data Analysis (CoDA)**.
+
+Financial portfolio allocations are naturally compositional in structure because individual asset or sector weights represent relative proportions of total investment. This project investigates whether treating portfolio allocation data as compositions provides additional analytical, visualisation, and interpretive value compared with conventional approaches to analysing multivariate financial data.
+
+The work combines mathematical modelling, multivariate statistical analysis, and unsupervised machine learning techniques to evaluate both the potential applications and limitations of compositional methods within quantitative portfolio analysis.
+
+---
+
+## Key Findings
+
+### Superinvestor Portfolio Analysis
+
+[Briefly describe the main finding from the analysis of the 94 superinvestor portfolios.]
+
+[For example: describe the two statistically significant clusters identified using Ward hierarchical clustering and what they appeared to represent.]
+
+### Simulated Portfolio Analysis
+
+[Briefly describe the main findings from the analysis of the 250 simulated portfolios.]
+
+[For example: explain what the compositional regression models demonstrated about the relationship between sector allocations, portfolio returns and volatility, and what the analysis revealed about the strengths and limitations of this approach.]
+
+---
+
+## Methods & Tools
+
+### Data Collection and Construction
+
+* **Python**
+* **Jupyter Notebooks**
+* Web scraping
+* Custom data-generation and processing functions
+* Data cleaning and transformation
+
+Two datasets were constructed:
+
+* A dataset containing sector allocation compositions for **94 well-known "superinvestors"**
+* A dataset containing **250 simulated portfolios**, including sector allocations, annual returns and annual volatility
+
+### Statistical Analysis
+
+* **R**
+* **RStudio**
+* **R Markdown**
+* Compositional Data Analysis
+* Log-ratio transformations
+* Principal Component Analysis (PCA)
+* Hierarchical clustering using **Ward's method**
+* Unsupervised learning
+* Regression modelling
+* Statistical and exploratory visualisation
+
+---
+
+## Selected Figures
+
+The following figures provide an overview of the analysis and key results.
+
+### Superinvestor Portfolio Composition
+
+[Insert selected ternary diagram here.]
+
+*Brief caption explaining what the figure shows and why it is relevant.*
+
+### Principal Components and Portfolio Clusters
+
+[Insert PCA/clustering figure here.]
+
+*Brief caption explaining the principal components, clustering and main finding illustrated by the figure.*
+
+### Hierarchical Clustering
+
+[Insert dendrogram here, if included.]
+
+*Brief caption explaining the Ward clustering and its relevance to the identified portfolio groups.*
+
+[Add or remove figures as appropriate. The full set of figures and analysis is available in the dissertation report.]
+
+---
+
+## Repository Structure
+
+```text
+├── notebooks/
+│   ├── superinvestor_dataset_construction.ipynb
+│   └── simulated_portfolio_dataset_construction.ipynb
+│
+├── data/
+│   └── available dataset files
+│
+├── analysis/
+│   ├── superinvestor_analysis.Rmd
+│   └── simulated_portfolio_analysis.Rmd
+│
+├── figures/
+│   └── selected analysis figures
+│
+├── report/
+│   └── MSc dissertation report.pdf
+│
+├── README.md
+├── LICENSE
+└── .gitignore
+```
+
+The `notebooks/` directory contains the Python notebooks used to construct the two datasets.
+
+The `data/` directory contains the dataset that can be redistributed.
+
+The `analysis/` directory contains the R Markdown files used for the statistical analysis of each dataset.
+
+The `figures/` directory contains selected figures from the analysis.
+
+The `report/` directory contains the full MSc dissertation.
+
+---
+
+## Data & Reproducibility
+
+The notebooks used for dataset construction and the R Markdown files used for statistical analysis are included to provide transparency and enable reproduction of the research workflow.
+
+One of the datasets was obtained from an external online source. As permission to redistribute this data could not be confirmed, it has not been included in this repository. Users wishing to reproduce this part of the analysis should obtain the data independently from the original source and ensure compliance with any applicable terms of use.
+
+The externally sourced data was obtained from **Valuesider**.
+
+[Add any further information needed to explain how the missing dataset can be obtained or how the analysis can be reproduced.]
+
+---
+
+## Scope & Limitations
+
+This project focuses on evaluating the usefulness of **Compositional Data Analysis as a statistical framework for analysing financial portfolio data**.
+
+The work is primarily concerned with portfolio structure, allocation relationships, interpretation, and statistical modelling rather than the implementation or comparison of established portfolio optimisation frameworks.
+
+The results therefore provide insight into the analytical value and limitations of compositional representations, while recognising that practical portfolio construction involves additional financial considerations and optimisation methodologies beyond the scope of this study.
+
+---
+
+## Dissertation Report
+
+The full MSc dissertation provides the theoretical background, detailed methodology, complete statistical analysis, results, discussion, and conclusions underlying this repository.
+
+**[View the full dissertation](report/MSc_dissertation_report.pdf)**
+
+---
+
+## Author
+
+**[Your Name]**
+
+MSc Data Science
+BSc Mathematics
+
+[University Name]
+[Year]
