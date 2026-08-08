@@ -74,13 +74,13 @@ Portfolio clustering: PCA was applied to the centred log-ratio (clr) transformed
 
 ### Observed vs Fitted Portfolio Returns
 
-![Superinvestor portfolio composition](figures/observed-vs-fitted-returns.png)
+![Superinvestor portfolio composition](figures/fitted-vs-observed-return.png)
 
 Portfolio returns: Observed versus fitted annual portfolio returns from the compositional regression model. The model estimates the relationship between the relative sector composition of each portfolio and its annual return, illustrating how compositional information can be used to explain variation in portfolio performance.
 
 ### Observed vs Fitted Portfolio Volatility
 
-![Superinvestor portfolio composition](figures/observed-vs-fitted-volatility.png)
+![Superinvestor portfolio composition](figures/fitted-vs-observed-volatility.png)
 
 Portfolio volatility: Observed versus fitted annual portfolio volatility from the compositional regression model. The model estimates the relationship between the relative sector composition of each portfolio and its annual volatility, illustrating how the same compositional framework can be applied to a measure of portfolio risk.
 
