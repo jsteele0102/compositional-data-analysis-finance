@@ -4,7 +4,7 @@
 
 This repository contains the code, data, and analysis associated with my MSc Data Science dissertation project investigating the application of mathematical and statistical methods to financial portfolio data, with a particular focus on **Compositional Data Analysis (CoDA)**.
 
-Financial portfolio allocations are naturally compositional in structure because individual asset or sector weights represent relative proportions of total investment. This project investigates whether treating portfolio allocation data as compositions provides additional analytical, visualisation, and interpretive value compared with conventional approaches to analysing multivariate financial data.
+Financial portfolio allocations are naturally compositional in structure because individual asset or sector weights represent relative proportions of a total investment. This project investigates whether treating portfolio allocation data as compositions provides additional analytical, visualisation, and interpretive value compared with conventional approaches.
 
 The work combines mathematical modelling, multivariate statistical analysis, and unsupervised machine learning techniques to evaluate both the potential applications and limitations of compositional methods within quantitative portfolio analysis.
 
@@ -14,15 +14,15 @@ The work combines mathematical modelling, multivariate statistical analysis, and
 
 ### Superinvestor Portfolio Analysis
 
-[Briefly describe the main finding from the analysis of the 94 superinvestor portfolios.]
+Ward hierarchical clustering identified two distinct clusters among the 94 superinvestor portfolios. The clusters appeared to represent relatively **aggressive** and **defensive** investment strategies, providing insight into the sector allocation characteristics associated with these approaches among a group of highly successful investors.
 
-[For example: describe the two statistically significant clusters identified using Ward hierarchical clustering and what they appeared to represent.]
+The aggressive cluster was characterised by more uneven sector allocations, with relatively high weightings in **Financial Services** and **Technology**. In contrast, the defensive cluster exhibited more evenly distributed allocations across a wider range of sectors, with a notably higher allocation to **Energy**. Both clusters nevertheless showed substantial exposure to Financial Services, while neither exhibited significant allocations to funds or Utilities.
 
 ### Simulated Portfolio Analysis
 
-[Briefly describe the main findings from the analysis of the 250 simulated portfolios.]
+Compositional regression models quantified the relationship between sector allocation and both portfolio return and volatility. Higher allocations to **Technology** were associated with higher fitted returns and volatility, while **Industrials** was associated with lower fitted returns within the simulated dataset.
 
-[For example: explain what the compositional regression models demonstrated about the relationship between sector allocations, portfolio returns and volatility, and what the analysis revealed about the strengths and limitations of this approach.]
+The analysis demonstrated that compositional modelling can provide an interpretable way of relating relative sector allocations to portfolio performance characteristics. However, the results also highlighted a trade-off between interpretability and specificity, suggesting that while the methodology can support the comparison of alternative portfolio compositions, it should not be interpreted as a standalone portfolio optimisation or out-of-sample predictive framework.
 
 ---
 
@@ -127,8 +127,6 @@ One of the datasets was obtained from an external online source. As permission t
 
 The externally sourced data was obtained from **Valuesider**.
 
-[Add any further information needed to explain how the missing dataset can be obtained or how the analysis can be reproduced.]
-
 ---
 
 ## Scope & Limitations
@@ -141,20 +139,20 @@ The results therefore provide insight into the analytical value and limitations 
 
 ---
 
-## Dissertation Report
+## Report
 
 The full MSc dissertation provides the theoretical background, detailed methodology, complete statistical analysis, results, discussion, and conclusions underlying this repository.
 
-**[View the full dissertation](report/MSc_dissertation_report.pdf)**
+**[View the full dissertation](report/report.pdf)**
 
 ---
 
 ## Author
 
-**[Your Name]**
+**Josh Steele**
 
 MSc Data Science
 BSc Mathematics
 
-[University Name]
-[Year]
+University of Bath
+2024
