@@ -60,7 +60,7 @@ Two datasets were constructed:
 
 The following figures provide an overview of the analysis and key results.
 
-### Superinvestor Portfolio Composition
+### Ternary Diagram
 
 [Insert selected ternary diagram here.]
 
