@@ -143,7 +143,7 @@ The results therefore provide insight into the analytical value and limitations 
 
 The full MSc dissertation provides the theoretical background, detailed methodology, complete statistical analysis, results, discussion, and conclusions underlying this repository.
 
-**[View the full dissertation](report/report.pdf)**
+**[View the full dissertation](report/compositional-portfolio-analysis-report.pdf)**
 
 ---
 
