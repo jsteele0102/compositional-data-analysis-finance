@@ -62,23 +62,27 @@ The following figures provide an overview of the analysis and key results.
 
 ### Ternary Diagram
 
-[Insert selected ternary diagram here.]
+![Superinvestor portfolio composition](figures/ternary-diagram.png)
 
-*Brief caption explaining what the figure shows and why it is relevant.*
+Portfolio composition: Distribution of the 94 superinvestor portfolios across three aggregated sector groups. Each point represents a portfolio, illustrating the compositional structure and variation in sector allocation. The ternary representation also provides an intuitive visualisation of the relative geometry underlying compositional data, as formalised by Aitchison geometry.
 
 ### Principal Components and Portfolio Clusters
 
-[Insert PCA/clustering figure here.]
+![Superinvestor portfolio composition](figures/clusters-ward.png)
 
-*Brief caption explaining the principal components, clustering and main finding illustrated by the figure.*
+Portfolio clustering: PCA was applied to the centred log-ratio (clr) transformed portfolio compositions before hierarchical clustering using Ward's method. The first two principal components provide a two-dimensional representation of the main variation in portfolio composition, with colours indicating the two clusters identified. The separation of the clusters illustrates the distinct allocation patterns underlying the aggressive and defensive investment strategies identified in the analysis.
 
-### Hierarchical Clustering
+### Observed vs Fitted Portfolio Returns
 
-[Insert dendrogram here, if included.]
+![Superinvestor portfolio composition](figures/observed-vs-fitted-returns.png)
 
-*Brief caption explaining the Ward clustering and its relevance to the identified portfolio groups.*
+Portfolio returns: Observed versus fitted annual portfolio returns from the compositional regression model. The model estimates the relationship between the relative sector composition of each portfolio and its annual return, illustrating how compositional information can be used to explain variation in portfolio performance.
 
-[Add or remove figures as appropriate. The full set of figures and analysis is available in the dissertation report.]
+### Observed vs Fitted Portfolio Volatility
+
+![Superinvestor portfolio composition](figures/observed-vs-fitted-volatility.png)
+
+Portfolio volatility: Observed versus fitted annual portfolio volatility from the compositional regression model. The model estimates the relationship between the relative sector composition of each portfolio and its annual volatility, illustrating how the same compositional framework can be applied to a measure of portfolio risk.
 
 ---
 
