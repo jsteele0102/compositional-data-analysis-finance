@@ -50,7 +50,6 @@ Two datasets were constructed:
 * Log-ratio transformations
 * Principal Component Analysis (PCA)
 * Hierarchical clustering using **Ward's method**
-* Unsupervised learning
 * Regression modelling
 * Statistical and exploratory visualisation
 
@@ -94,17 +93,20 @@ Portfolio volatility: Observed versus fitted annual portfolio volatility from th
 │   └── simulated_portfolio_dataset_construction.ipynb
 │
 ├── data/
-│   └── available dataset files
+│   └── simulated-portfolios.csv
 │
 ├── analysis/
 │   ├── superinvestor_analysis.Rmd
 │   └── simulated_portfolio_analysis.Rmd
 │
 ├── figures/
-│   └── selected analysis figures
+│   ├── clusters-ward.png
+│   ├── ternary-diagram.png
+│   ├── fitted_vs_observed_return.png
+│   └── fitted_vs_observed_volatility.png
 │
 ├── report/
-│   └── MSc dissertation report.pdf
+│   └── compositional-portfolio-analysis-report.pdf
 │
 ├── README.md
 ├── LICENSE
@@ -145,7 +147,7 @@ The results therefore provide insight into the analytical value and limitations 
 
 ## Report
 
-The full MSc dissertation provides the theoretical background, detailed methodology, complete statistical analysis, results, discussion, and conclusions underlying this repository.
+The full report provides the theoretical background, detailed methodology, complete statistical analysis, results, discussion, and conclusions underlying this repository.
 
 **[View the full dissertation](report/compositional-portfolio-analysis-report.pdf)**
 
@@ -155,8 +157,8 @@ The full MSc dissertation provides the theoretical background, detailed methodol
 
 **Josh Steele**
 
-MSc Data Science
+MSc Data Science  
 BSc Mathematics
 
-University of Bath
+University of Bath  
 2024
